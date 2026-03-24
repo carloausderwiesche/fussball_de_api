@@ -14,6 +14,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ./fussball_api /app/fussball_api
 COPY ./examples /app/examples
 
+# Create the logos directory for cached club logos
+RUN mkdir -p /app/logos
+
 # Expose port 8000 to the outside world
 EXPOSE 8000
 

@@ -39,5 +39,9 @@ class Settings(BaseSettings):
     # Cache directory (configurable via environment variable)
     CACHE_DIR: Path = Path("./cache_payloads")
 
+    # Logo proxy settings
+    LOGOS_DIR: Path = Path("/app/logos")
+    LOGO_BASE_URL: str = ""
+
 
 settings = Settings()

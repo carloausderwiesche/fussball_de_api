@@ -152,3 +152,36 @@ services:
 Nach dem ersten Start befindet sich die Datei `fussball_cache.json` im Host-Verzeichnis `./cache_data`.
 Die Anwendung lädt diese beim Start automatisch (sofern vorhanden) und speichert sie nach jedem
 Prewarming-Zyklus erneut. Der Pfad wird über `CACHE_DIR` festgelegt.
+
+## Logo-Proxy (Vereinswappen)
+
+Anstatt die Logo-URLs direkt von fussball.de auszugeben, werden die Wappen beim Crawlen heruntergeladen und über einen eigenen Nginx-Container bereitgestellt.
+
+### Funktionsweise
+
+1. Beim Crawlen wird jedes Logo von fussball.de heruntergeladen und unter `./data/logos/<md5-hash>.png` gespeichert.
+2. In den API-Responses wird statt der fussball.de-URL eine eigene URL ausgegeben:
+   ```
+   https://deine-domain.de/logos/<hash>.png
+   ```
+3. Ein Nginx-Container stellt die Logos statisch unter `/logos/` bereit (mit 30-Tage-Cache-Header).
+4. Traefik routet `/logos/*` an Nginx, alles andere an die FastAPI-App.
+
+### Konfiguration (.env)
+
+| Variable | Beschreibung | Default |
+|----------|-------------|---------|
+| `LOGOS_DIR` | Verzeichnis für heruntergeladene Wappen (Container-Pfad) | `/app/logos` |
+| `LOGO_BASE_URL` | Basis-URL für Logo-Pfade in API-Responses | `""` (relativ) |
+
+Beispiel:
+```env
+LOGOS_DIR="/app/logos"
+LOGO_BASE_URL="https://fussball-de-api.deine-domain.de"
+```
+
+### Docker-Volumes
+
+Die `docker-compose.yml` mountet `./data/logos` in beide Container:
+- **API-Container**: `/app/logos` (Schreibzugriff zum Herunterladen)
+- **Nginx-Container**: `/usr/share/nginx/html/logos` (Lesezugriff zum Ausliefern)

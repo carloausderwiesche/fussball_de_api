@@ -18,6 +18,7 @@ from .cache import (
     fetch_url,
 )
 from .config import settings
+from .logo_proxy import download_and_rewrite_logo
 from .schemas import ClubSearchResult, Game, Table, TableEntry, Team, MatchEvent
 
 logger = logging.getLogger(__name__)
@@ -286,14 +287,14 @@ async def _get_games(url: str, cache_key: str) -> List[Game]:
             home_team_logo = home_logo_span["data-responsive-image"] if home_logo_span else ""
             if home_team_logo.startswith("//"):
                 home_team_logo = f"https:{home_team_logo}"
-            home_team_logo = normalize_logo_url(home_team_logo)
+            home_team_logo = download_and_rewrite_logo(normalize_logo_url(home_team_logo))
 
             away_team_name = away_team_cell.find(class_="club-name").get_text(strip=True)
             away_logo_span = away_team_cell.find("span", attrs={"data-responsive-image": True})
             away_team_logo = away_logo_span["data-responsive-image"] if away_logo_span else ""
             if away_team_logo.startswith("//"):
                 away_team_logo = f"https:{away_team_logo}"
-            away_team_logo = normalize_logo_url(away_team_logo)
+            away_team_logo = download_and_rewrite_logo(normalize_logo_url(away_team_logo))
 
             location = None
             location_url = None
@@ -523,7 +524,7 @@ async def get_team_table(team_id: str) -> Optional[Table]:
         logo_url = logo_tag["src"] if logo_tag else ""
         if logo_url.startswith("//"):
             logo_url = f"https:{logo_url}"
-        logo_url = normalize_logo_url(logo_url)
+        logo_url = download_and_rewrite_logo(normalize_logo_url(logo_url))
 
         try:
             entry = TableEntry(
@@ -595,7 +596,7 @@ async def search_clubs(query: str) -> List[ClubSearchResult]:
         logo_url = img_tag["src"] if img_tag and img_tag.has_attr("src") else ""
         if logo_url.startswith("//"):
             logo_url = f"https:{logo_url}"
-        logo_url = normalize_logo_url(logo_url)
+        logo_url = download_and_rewrite_logo(normalize_logo_url(logo_url))
 
         name_p = link_tag.find("p", class_="name")
         name = name_p.get_text(strip=True) if name_p else "Unknown Club"
@@ -774,17 +775,17 @@ async def get_game_by_id(game_id: str) -> Optional[Game]:
 
     home_team_logo = ""
     if home_logo_span and home_logo_span.has_attr("data-responsive-image"):
-        home_team_logo = normalize_logo_url(f"https:{home_logo_span['data-responsive-image']}")
+        home_team_logo = download_and_rewrite_logo(normalize_logo_url(f"https:{home_logo_span['data-responsive-image']}"))
     elif home_logo_img and home_logo_img.has_attr("src"):
         src = home_logo_img["src"]
-        home_team_logo = normalize_logo_url(f"https:{src}" if src.startswith("//") else src)
+        home_team_logo = download_and_rewrite_logo(normalize_logo_url(f"https:{src}" if src.startswith("//") else src))
 
     away_team_logo = ""
     if away_logo_span and away_logo_span.has_attr("data-responsive-image"):
-        away_team_logo = normalize_logo_url(f"https:{away_logo_span['data-responsive-image']}")
+        away_team_logo = download_and_rewrite_logo(normalize_logo_url(f"https:{away_logo_span['data-responsive-image']}"))
     elif away_logo_img and away_logo_img.has_attr("src"):
         src = away_logo_img["src"]
-        away_team_logo = normalize_logo_url(f"https:{src}" if src.startswith("//") else src)
+        away_team_logo = download_and_rewrite_logo(normalize_logo_url(f"https:{src}" if src.startswith("//") else src))
 
     status_tag = stage_section.find("span", class_="info-text")
     status = status_tag.get_text(strip=True) if status_tag else None

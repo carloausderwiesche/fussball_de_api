@@ -21,6 +21,14 @@ def clear_caches():
     http_cache.clear()
 
 
+@pytest.fixture(autouse=True)
+def mock_logo_proxy(monkeypatch):
+    """Mock download_and_rewrite_logo to be a passthrough in all crawler tests."""
+    monkeypatch.setattr(
+        "fussball_api.crawler.download_and_rewrite_logo", lambda url: url
+    )
+
+
 @pytest.fixture
 def club_teams_html():
     """Sample HTML for testing get_club_teams."""
