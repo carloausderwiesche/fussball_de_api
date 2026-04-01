@@ -51,6 +51,14 @@ app.add_middleware(
 
 app.mount("/examples", StaticFiles(directory="./examples"), name="examples")
 
+# Serve cached club logos at /logos/<hash>.png (matches logo_proxy URLs; no separate nginx required).
+settings.LOGOS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount(
+    "/logos",
+    StaticFiles(directory=str(settings.LOGOS_DIR)),
+    name="logos",
+)
+
 
 async def prewarm_cache():
     """
